@@ -149,13 +149,13 @@ d3.csv("assets/data/data.csv").then(censusdata=> {
   var leftAxis = d3.axisLeft(yLinearScale);
 
 // Add x-axis to the bottom of the graph
-chartGroup.append("g")
+var xAxis=chartGroup.append("g")
 .classed("x-axis", true)
 .attr("transform", `translate(0, ${height})`)
 .call(bottomAxis);
 
 // Add y-axis to the left side of the display
-chartGroup.append("g")
+var yAxis=chartGroup.append("g")
  .call(leftAxis);
 
 // append initial circles
@@ -188,14 +188,15 @@ circlesGroup = updateToolTip(circlesGroup,chosenXAxis,chosenYAxis);
 
 var xlabelsgroup= chartGroup.append("g")
 .attr("transform", `translate(${width / 2}, ${height + margin.top})`)
-.classed("text", true)
+.classed("xText", true)
 
 //Add label for poverty and default to active
 var PovertyLabel = xlabelsgroup.append("text")
     .attr("x", 0)
     .attr("y", 20)
     .attr("value", "poverty") // value to grab for event listener
-    .classed("active", true)
+    .classed("active xLabel", true)
+    // .attr("class","xLabel")
     .text("In Poverty (%)");
 
 //Add label for age and default to inactive
@@ -203,7 +204,7 @@ var AgeLabel = xlabelsgroup.append("text")
     .attr("x", 0)
     .attr("y",40)
     .attr("value", "age") // value to grab for event listener
-    .classed("inactive", true)
+    .classed("inactive xLabel", true)
     .text("Age (median)");
 
 //Add label for Household income and default to inactive
@@ -211,7 +212,7 @@ var HouseholdIncomeLabel = xlabelsgroup.append("text")
 .attr("x", 0)
 .attr("y", 60)
 .attr("value", "income") // value to grab for event listener
-.classed("inactive", true)
+.classed("inactive xLabel", true)
 .text("Household Income (median)");
 
 //Create labels group for y axis
@@ -220,7 +221,7 @@ var ylabelsgroup= chartGroup.append("g")
 .attr("transform", "rotate(-90)")
 // , `translate(0, ${(0 - (height / 2))})`)
 // .attr("transform", `translate(${width / 2}, ${height + margin.top})`)
-.classed("text", true)
+.classed("yText", true)
 
 //Add label for Obese and default to inactive
 var ObeseLabel = ylabelsgroup.append("text")
@@ -228,7 +229,7 @@ var ObeseLabel = ylabelsgroup.append("text")
     .attr("dx", 0 - (height / 2))
     .attr("dy", "-1.5em")
     .attr("value", "obese") // value to grab for event listener
-    .classed("inactive", true)
+    .classed("inactive yLabel", true)
     .text("Obese (%)");
 
 //Add label for Smokes and default to inactive
@@ -236,7 +237,7 @@ var SmokesLabel = ylabelsgroup.append("text")
     .attr("dx", 0 - (height / 2))
     .attr("dy", "-2.5em")
     .attr("value", "smokes") // value to grab for event listener
-    .classed("inactive", true)
+    .classed("inactive yLabel", true)
     .text("Smokes (%)");
 
 //Add label for Healthcare and default to inactive
@@ -244,9 +245,68 @@ var HealthcareLabel = ylabelsgroup.append("text")
     .attr("dx", 0 - (height / 2))
     .attr("dy", "-3.5em")
     .attr("value", "healthcare") // value to grab for event listener
-    .classed("active", true)
+    .classed("active yLabel", true)
     .text("Lacks healthcare (%)");
 
+// x axis labels event listener
+
+d3.selectAll(".xLabel")
+    .on("click",function(){
+
+        var value = d3.select(this).attr("value");
+        console.log(value);
+
+        if (value!=chosenXAxis){
+
+            chosenXAxis=value;
+            //Update x-scale based on new value
+            xLinearScale = xaxisScale(censusdata,chosenXAxis);
+            //Update x-axis based on new value
+            xAxis=renderxaxis(xLinearScale,xAxis)
+            //Update circles based on new value
+            circlesGroup=rendercircle(circlesGroup,xLinearScale,yLinearScale,chosenXAxis,chosenYAxis)
+            //Update circle abbrev based on new value
+            circlesabbrev=rendercircletext(circlesabbrev,xLinearScale,yLinearScale,chosenXAxis,chosenYAxis)
+            //Update tooltip based on new value
+            circlesGroup = updateToolTip(circlesGroup,chosenXAxis,chosenYAxis);
+            //Activate the axis selected by user and inactivate all other axis
+            if (chosenXAxis === "poverty") {
+                PovertyLabel
+                  .classed("active", true)
+                  .classed("inactive", false);
+                AgeLabel
+                  .classed("active", false)
+                  .classed("inactive", true);
+                HouseholdIncomeLabel
+                  .classed("active", false)
+                  .classed("inactive", true);
+              }
+            else if (chosenXAxis === "age") {
+                AgeLabel
+                  .classed("active", true)
+                  .classed("inactive", false);
+                PovertyLabel
+                  .classed("active", false)
+                  .classed("inactive", true);
+                HouseholdIncomeLabel
+                  .classed("active", false)
+                  .classed("inactive", true);
+              }
+            else {
+                HouseholdIncomeLabel
+                  .classed("active", true)
+                  .classed("inactive", false);
+                PovertyLabel
+                  .classed("active", false)
+                  .classed("inactive", true);
+                  AgeLabel
+                  .classed("active", false)
+                  .classed("inactive", true);
+              }
+
+        }
+
+    });
 
 }).catch(function(error) {
   console.log(error);
