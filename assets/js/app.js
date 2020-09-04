@@ -49,60 +49,49 @@ function renderxaxis(newXScale,xAxis){
     xAxis.transition()
         .duration(1000)
         .call(bottomaxis);
-    
     return xAxis;
 }
 
 //function to render yaxis
 function renderyaxis(newYScale,yAxis){
     var leftaxis=d3.axisLeft(newYScale);
-    
     yAxis.transition()
         .duration(1000)
         .call(leftaxis);
-
     return yAxis;
 }
 
 //function to render circles
-
 function rendercircle(circlesGroup,newXScale,newYScale,chosenXAxis,chosenYAxis){
     circlesGroup.transition()
     .duration(1000)
     .attr("cx", d => newXScale(d[chosenXAxis]))
-    .attr("cy", d => newYScale(d[chosenYAxis]));
-    
-    return circlesGroup;
-    
+    .attr("cy", d => newYScale(d[chosenYAxis]));    
+    return circlesGroup;    
 }
 
 //function to render circle text
-
 function rendercircletext(circlesabbrev,newXScale,newYScale,chosenXAxis,chosenYAxis){
     circlesabbrev.transition()
     .duration(1000)
     .attr("x", d => newXScale(d[chosenXAxis]))
     .attr("y", d => newYScale(d[chosenYAxis]));
-
-  return circlesabbrev;
-    
+    return circlesabbrev;    
 }
 
 //function to update tooltip
-
 function updateToolTip(circlesGroup,chosenXAxis,chosenYAxis){
 
     var xtip,ytip;
-
     //Find the x-label for tooltip
     if (chosenXAxis==="poverty"){xtip="Poverty"}
     else if (chosenXAxis==="age"){xtip="Age"}
-    else {xtip="Income"}
+    else {xtip="Income"};
 
     //Find the y-label for tooltip
     if (chosenYAxis==="obese"){ytip="Obese"}
     else if (chosenYAxis==="smokes"){ytip="Smoke"}
-    else {ytip="Healthcare"}
+    else {ytip="Healthcare"};
 
     var toolTip = d3.tip()
     .attr("class", "d3-tip")
@@ -123,8 +112,6 @@ function updateToolTip(circlesGroup,chosenXAxis,chosenYAxis){
     });
 
   return circlesGroup;
-
-
 }
 
 // Import data from an external CSV file
@@ -148,18 +135,20 @@ d3.csv("assets/data/data.csv").then(censusdata=> {
   var bottomAxis = d3.axisBottom(xLinearScale);
   var leftAxis = d3.axisLeft(yLinearScale);
 
-// Add x-axis to the bottom of the graph
-var xAxis=chartGroup.append("g")
-.classed("x-axis", true)
-.attr("transform", `translate(0, ${height})`)
-.call(bottomAxis);
+  // Add x-axis to the bottom of the graph
+  var xAxis=chartGroup.append("g")
+    .classed("x-axis", true)
+    .attr("transform", `translate(0, ${height})`)
+    .call(bottomAxis);
 
-// Add y-axis to the left side of the display
-var yAxis=chartGroup.append("g")
- .call(leftAxis);
+  // Add y-axis to the left side of the display
+  var yAxis=chartGroup.append("g")
+    .classed("y-axis", true)
+    .attr("transform", "translate(0, 0)")
+    .call(leftAxis);
 
-// append initial circles
-var circlesGroup = chartGroup.selectAll("circle")
+  // append initial circles
+  var circlesGroup = chartGroup.selectAll("circle")
     .data(censusdata)
     .enter()
     .append("circle")
@@ -228,7 +217,7 @@ var ObeseLabel = ylabelsgroup.append("text")
     //.attr("dy", 0 - margin.left)
     .attr("dx", 0 - (height / 2))
     .attr("dy", "-1.5em")
-    .attr("value", "obese") // value to grab for event listener
+    .attr("value", "obesity") // value to grab for event listener
     .classed("inactive yLabel", true)
     .text("Obese (%)");
 
@@ -303,6 +292,66 @@ d3.selectAll(".xLabel")
                   .classed("active", false)
                   .classed("inactive", true);
               }
+
+        }
+
+    });
+
+    // y axis labels event listener
+
+    d3.selectAll(".yLabel")
+    .on("click",function(){
+
+        var value = d3.select(this).attr("value");
+        console.log(value);
+
+        if (value!=chosenYAxis){
+
+            chosenYAxis=value;
+            //Update y-scale based on new value
+            yLinearScale = yaxisScale(censusdata,chosenYAxis);
+            //Update y-axis based on new value
+            yAxis=renderyaxis(yLinearScale,yAxis)
+            //Update circles based on new value
+            circlesGroup=rendercircle(circlesGroup,xLinearScale,yLinearScale,chosenXAxis,chosenYAxis)
+            //Update circle abbrev based on new value
+            circlesabbrev=rendercircletext(circlesabbrev,xLinearScale,yLinearScale,chosenXAxis,chosenYAxis)
+            //Update tooltip based on new value
+            circlesGroup = updateToolTip(circlesGroup,chosenXAxis,chosenYAxis);
+            //Activate the axis selected by user and inactivate all other axis
+            if (chosenYAxis === "obesity") {
+                ObeseLabel
+                    .classed("active", true)
+                    .classed("inactive", false);
+                SmokesLabel
+                    .classed("active", false)
+                    .classed("inactive", true);
+                HealthcareLabel
+                    .classed("active", false)
+                    .classed("inactive", true);
+            }
+            else if (chosenYAxis === "smokes") {
+                SmokesLabel
+                    .classed("active", true)
+                    .classed("inactive", false);
+                ObeseLabel
+                    .classed("active", false)
+                    .classed("inactive", true);
+                HealthcareLabel
+                    .classed("active", false)
+                    .classed("inactive", true);
+            }
+            else {
+                HealthcareLabel
+                    .classed("active", true)
+                    .classed("inactive", false);
+                ObeseLabel
+                    .classed("active", false)
+                    .classed("inactive", true);
+                SmokesLabel
+                    .classed("active", false)
+                    .classed("inactive", true);
+            }
 
         }
 
